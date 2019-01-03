@@ -1,4 +1,9 @@
 # dead code
+
+python -m apache_beam.examples.wordcount --input test.csv --output sample.txt
+
+python beam_stream_proc.py --output_topic 'projects/ornate-lead-227417/topics/sample_topic1' --input_subscription 'projects/ornate-lead-227417/subscriptions/my-sub'
+
 gcloud beta dataflow jobs run bi_ps_to_bq \
     --max-workers=1 \
     --region=us-central1 \

@@ -69,10 +69,10 @@ async function test_subscribe() {
 }
 
 
-// test_publish().then(function() {
-//   console.log("Published....");
-//   test_subscribe();
-//   process.exit();
-// });
+test_publish().then(function() {
+  console.log("Published....");
+  test_subscribe();
+  process.exit();
+});
 
-test_subscribe();
+// test_subscribe();
