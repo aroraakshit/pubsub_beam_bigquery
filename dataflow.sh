@@ -1,3 +1,4 @@
+# dead code
 gcloud beta dataflow jobs run bi_ps_to_bq \
     --max-workers=1 \
     --region=us-central1 \
