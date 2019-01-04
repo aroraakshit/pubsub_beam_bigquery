@@ -37,10 +37,6 @@ from apache_beam.options.pipeline_options import StandardOptions
 def run(argv=None):
   """Build and run the pipeline."""
   parser = argparse.ArgumentParser()
-  parser.add_argument(
-      '--output_topic', required=True,
-      help=('Output PubSub topic of the form '
-            '"projects/<PROJECT>/topic/<TOPIC>".'))
   group = parser.add_mutually_exclusive_group(required=True)
   group.add_argument(
       '--input_topic',
@@ -70,34 +66,36 @@ def run(argv=None):
                 | beam.io.ReadFromPubSub(topic=known_args.input_topic)
                 .with_output_types(bytes))
 
-  lines = messages | 'decode' >> beam.Map(lambda x: x.decode('utf-8'))
+#   lines = messages | 'decode' >> beam.Map(lambda x: x.decode('utf-8'))
 
-  # Count the occurrences of each word.
-  def count_ones(word_ones):
-    (word, ones) = word_ones
-    return (word, sum(ones))
+#   # Count the occurrences of each word.
+#   def count_ones(word_ones):
+#     (word, ones) = word_ones
+#     return (word, sum(ones))
 
-  counts = (lines
-            | 'split' >> (beam.ParDo(WordExtractingDoFn())
-                          .with_output_types(unicode))
-            | 'pair_with_one' >> beam.Map(lambda x: (x, 1))
-            | beam.WindowInto(window.FixedWindows(15, 0))
-            | 'group' >> beam.GroupByKey()
-            | 'count' >> beam.Map(count_ones))
+#   counts = (lines
+#             | 'split' >> (beam.ParDo(WordExtractingDoFn())
+#                           .with_output_types(unicode))
+#             | 'pair_with_one' >> beam.Map(lambda x: (x, 1))
+#             | beam.WindowInto(window.FixedWindows(15, 0))
+#             | 'group' >> beam.GroupByKey()
+#             | 'count' >> beam.Map(count_ones))
 
-  # Format the counts into a PCollection of strings.
-  def format_result(word_count):
-    (word, count) = word_count
-    return '%s: %d' % (word, count)
+#   # Format the counts into a PCollection of strings.
+#   def format_result(word_count):
+#     (word, count) = word_count
+#     return '%s: %d' % (word, count)
 
-  output = (counts
-            | 'format' >> beam.Map(format_result)
-            | 'encode' >> beam.Map(lambda x: x.encode('utf-8'))
-            .with_output_types(bytes))
-  
-  # Write to PubSub.
-  # pylint: disable=expression-not-assigned
-  output | beam.io.WriteToPubSub(known_args.output_topic)
+#   output = (counts
+#             | 'format' >> beam.Map(format_result)
+#             | 'encode' >> beam.Map(lambda x: x.encode('utf-8'))
+#             .with_output_types(bytes))
+
+  quotes = p | beam.Create([
+    {'string1': 'MG', 'string2': 'oujiogyhiut', 'int1': 333},
+    {'string1': 'Yo', 'string2': 'Do, ujgiyuhuhThere is no try.', 'int1': 2},
+  ])
+  quotes | beam.io.gcp.bigquery.WriteToBigQuery(table='sdataset.stable', project='ornate-lead-227417')
 
   result = p.run()
   result.wait_until_finish()
