@@ -33,9 +33,10 @@ async function test_publish() {
 
   var ts_event = (new Date()).toISOString();
   // var ts_event = (new Date()).getTime()*1000;
-  var event_name = "super_duper_event";
+  var event_name = "super_duper_event - 1";
 
-  var json = JSON.stringify({ts_event: ts_event, ts_stored:ts_event, event_name:event_name});
+  // var json = JSON.stringify({ts_event: ts_event, ts_stored:ts_event, event_name:event_name});
+  var json = JSON.stringify({ts_event: ts_event, event_name:event_name});
 
   console.log("Publishing:");
   console.log(json);

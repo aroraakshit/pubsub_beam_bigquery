@@ -23,25 +23,33 @@ from __future__ import absolute_import
 
 import argparse
 import logging
+import json
 
 from past.builtins import unicode
 
 import apache_beam as beam
 import apache_beam.transforms.window as window
+from apache_beam import pvalue
 from apache_beam.examples.wordcount import WordExtractingDoFn
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import SetupOptions
 from apache_beam.options.pipeline_options import StandardOptions
 
-class ComputeWordLengthFn(beam.DoFn):
-  def process(self, element):
-    return [{'string1': 'MG', 'string2': 'oujiogyhiut', 'int1': 333},
-    {'string1': 'Yo', 'string2': 'Do, ujgiyuhuhThere is no try.', 'int1': 2}]
-
-class ComputeWordLengthFn1(beam.DoFn):
-  def process(self, element):
-    return [{'string1': 'MG', 'num1': 333}]
-
+class Split(beam.DoFn):
+    
+    OUTPUT_TAG_PS1 = 'super_duper_event - 1'
+    OUTPUT_TAG_PS2 = 'super_duper_event - 2'
+    o1 = [{'string1': 'Ut', 'string2': 'ah', 'int1': 123}, {'string1': 'Cali', 'string2': 'fornia', 'int1': 124}]
+    o2 = [{'string1': 'Baja', 'num1': 125}]
+    def process(self, element):
+        print(json.loads(element))
+        json_data = json.loads(element)
+        if json_data["event_name"] == self.OUTPUT_TAG_PS1:
+            for i in self.o1:
+                yield pvalue.TaggedOutput(self.OUTPUT_TAG_PS1, i)
+        elif json_data["event_name"] == self.OUTPUT_TAG_PS2:
+            for i in self.o2:
+                yield pvalue.TaggedOutput(self.OUTPUT_TAG_PS2, i)
 
 def run(argv=None):
   """Build and run the pipeline."""
@@ -74,12 +82,11 @@ def run(argv=None):
     messages = (p
                 | beam.io.ReadFromPubSub(topic=known_args.input_topic)
                 .with_output_types(bytes))
-
-  quotes1 = messages | beam.ParDo(ComputeWordLengthFn())
-  quotes2 = messages | beam.ParDo(ComputeWordLengthFn1())
+  lines = messages | 'decode' >> beam.Map(lambda x: x.decode('utf-8'))
+  quotes = lines | beam.ParDo(Split()).with_outputs(Split.OUTPUT_TAG_PS1, Split.OUTPUT_TAG_PS2)
   
-  quotes1 | "tf1" >> beam.io.gcp.bigquery.WriteToBigQuery(table='ornate-lead-227417:sdataset.stable', project='ornate-lead-227417')
-  quotes2 | "tf2" >> beam.io.gcp.bigquery.WriteToBigQuery(table='ornate-lead-227417:sdataset.stable2', project='ornate-lead-227417')
+  quotes[Split.OUTPUT_TAG_PS1] | "tf1" >> beam.io.gcp.bigquery.WriteToBigQuery(table='ornate-lead-227417:sdataset.stable', project='ornate-lead-227417')
+  quotes[Split.OUTPUT_TAG_PS2] | "tf2" >> beam.io.gcp.bigquery.WriteToBigQuery(table='ornate-lead-227417:sdataset.stable2', project='ornate-lead-227417')
 
   result = p.run()
   result.wait_until_finish()
