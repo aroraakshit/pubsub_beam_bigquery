@@ -14,7 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+# python beam_pubsub_bigquery.py --input_topic 'projects/ornate-lead-227417/topics/sample_topic' --runner DirectRunner
 
 """A streaming word-counting workflow.
 """
@@ -33,6 +33,10 @@ from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import SetupOptions
 from apache_beam.options.pipeline_options import StandardOptions
 
+class ComputeWordLengthFn(beam.DoFn):
+  def process(self, element):
+    return [{'string1': 'MG', 'string2': 'oujiogyhiut', 'int1': 333},
+    {'string1': 'Yo', 'string2': 'Do, ujgiyuhuhThere is no try.', 'int1': 2}]
 
 def run(argv=None):
   """Build and run the pipeline."""
@@ -66,36 +70,9 @@ def run(argv=None):
                 | beam.io.ReadFromPubSub(topic=known_args.input_topic)
                 .with_output_types(bytes))
 
-#   lines = messages | 'decode' >> beam.Map(lambda x: x.decode('utf-8'))
-
-#   # Count the occurrences of each word.
-#   def count_ones(word_ones):
-#     (word, ones) = word_ones
-#     return (word, sum(ones))
-
-#   counts = (lines
-#             | 'split' >> (beam.ParDo(WordExtractingDoFn())
-#                           .with_output_types(unicode))
-#             | 'pair_with_one' >> beam.Map(lambda x: (x, 1))
-#             | beam.WindowInto(window.FixedWindows(15, 0))
-#             | 'group' >> beam.GroupByKey()
-#             | 'count' >> beam.Map(count_ones))
-
-#   # Format the counts into a PCollection of strings.
-#   def format_result(word_count):
-#     (word, count) = word_count
-#     return '%s: %d' % (word, count)
-
-#   output = (counts
-#             | 'format' >> beam.Map(format_result)
-#             | 'encode' >> beam.Map(lambda x: x.encode('utf-8'))
-#             .with_output_types(bytes))
-
-  quotes = p | beam.Create([
-    {'string1': 'MG', 'string2': 'oujiogyhiut', 'int1': 333},
-    {'string1': 'Yo', 'string2': 'Do, ujgiyuhuhThere is no try.', 'int1': 2},
-  ])
-  quotes | beam.io.gcp.bigquery.WriteToBigQuery(table='sdataset.stable', project='ornate-lead-227417')
+  quotes = messages | beam.ParDo(ComputeWordLengthFn())
+  
+  quotes | beam.io.gcp.bigquery.WriteToBigQuery(table='ornate-lead-227417:sdataset.stable', project='ornate-lead-227417')
 
   result = p.run()
   result.wait_until_finish()
