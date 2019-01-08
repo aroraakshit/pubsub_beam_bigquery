@@ -36,7 +36,8 @@ async function test_publish() {
   var event_name = "super_duper_event - 1";
 
   // var json = JSON.stringify({ts_event: ts_event, ts_stored:ts_event, event_name:event_name});
-  var json = JSON.stringify({ts_event: ts_event, event_name:event_name});
+  var payload_ = "[{'string1': 'NEW', 'string2': 'STR', 'int1': 1000}, {'string1': 'NEW1', 'string2': 'STR1', 'int1': 1001}]";
+  var json = JSON.stringify({event_name:event_name,payload:payload_});
 
   console.log("Publishing:");
   console.log(json);

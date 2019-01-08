@@ -14,6 +14,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# https://stackoverflow.com/questions/53285726/conditional-statement-python-apache-beam-pipeline
 # python beam_pubsub_bigquery_one_many.py --input_topic 'projects/ornate-lead-227417/topics/sample_topic' --runner DirectRunner
 
 """A streaming word-counting workflow.
@@ -85,8 +87,8 @@ def run(argv=None):
   lines = messages | 'decode' >> beam.Map(lambda x: x.decode('utf-8'))
   quotes = lines | beam.ParDo(Split()).with_outputs(Split.OUTPUT_TAG_PS1, Split.OUTPUT_TAG_PS2)
   
-  quotes[Split.OUTPUT_TAG_PS1] | "tf1" >> beam.io.gcp.bigquery.WriteToBigQuery(table='ornate-lead-227417:sdataset.stable', project='ornate-lead-227417')
-  quotes[Split.OUTPUT_TAG_PS2] | "tf2" >> beam.io.gcp.bigquery.WriteToBigQuery(table='ornate-lead-227417:sdataset.stable2', project='ornate-lead-227417')
+  quotes[Split.OUTPUT_TAG_PS1] | "tf1" >> beam.io.gcp.bigquery.WriteToBigQuery(table='ornate-lead-227417:sdataset.stable')
+  quotes[Split.OUTPUT_TAG_PS2] | "tf2" >> beam.io.gcp.bigquery.WriteToBigQuery(table='ornate-lead-227417:sdataset.stable2')
 
   result = p.run()
   result.wait_until_finish()
