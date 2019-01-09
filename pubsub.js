@@ -1,42 +1,19 @@
-// Imports the Google Cloud client library
-const { PubSub } = require('@google-cloud/pubsub');
+'use strict';
 
-const credentials = require('./cred.json');
+const { PubSub } = require('@google-cloud/pubsub'); // Imports the Google Cloud client library
+const credentials = require('/path/to/credentials.json'); // points to credentials
 
-// Instantiates a client
-const pubsubClient = new PubSub({ projectId:credentials.project_id, credentials:credentials });
-
-// The name for the new topic
-const topicName = 'projects/ornate-lead-227417/topics/sample_topic';
-const subscriptionName = 'projects/ornate-lead-227417/subscriptions/my-sub';
-
-// Creates the new topic
-/*
-pubsubClient
-  .createTopic(topicName)
-  .then(results => {
-    const topic = results[0];
-    console.log(`Topic ${topic.name} created.`);
-  })
-  .catch(err => {
-    console.error('ERROR:', err);
-  });
-*/
+const pubsubClient = new PubSub({ projectId:credentials.project_id, credentials:credentials }); // Instantiates a client
+const topicName = 'projects/[PROJECT_ID]/topics/[TOPIC_NAME]';
+const subscriptionName = 'projects/[PROJECT_ID]/subscriptions/[SUBSCRIPTION_NAME]';
 
 async function test_publish() {
-
-  // Get an already created subscription...
-  const topic = pubsubClient.topic(topicName);
-
+  const topic = pubsubClient.topic(topicName); // Get an already created subscription...
   const publisher = await topic.publisher();
-  console.log(publisher);
-
-  var ts_event = (new Date()).toISOString();
-  // var ts_event = (new Date()).getTime()*1000;
-  var event_name = "super_duper_event - 1";
-
-  // var json = JSON.stringify({ts_event: ts_event, ts_stored:ts_event, event_name:event_name});
-  var payload_ = "[{'string1': 'NEW', 'string2': 'STR', 'int1': 1000}, {'string1': 'NEW1', 'string2': 'STR1', 'int1': 1001}]";
+  // console.log(publisher);
+  var ts = new Date().toISOString().slice(0, 19).replace('T', ' ') ; // convert to date-time used by BigQuery (SQL)
+  var event_name = "super duper event - 1";
+  var payload_ = "{'string': 'CO', 'int': '100', 'timestamp': '" + ts + "'}"; // According to the schema of row in BigQuery, unless some pre-processing is due in Apache Beam component
   var json = JSON.stringify({event_name:event_name,payload:payload_});
 
   console.log("Publishing:");
@@ -52,10 +29,10 @@ async function test_subscribe() {
   // Get an already created subscription...
   const topic = pubsubClient.topic(topicName);
 
-  // Subscribing. Something like this, but not exactly sure how get() works yet...
+  // Subscribing
   const subsc = await topic.subscription(subscriptionName);
-//   const subsc = await pubsubClient.subscription(subscriptionName);
-  console.log(subsc);
+  
+  // console.log(subsc);
   const messageHandler = message => {
       console.log(`Received message ${message.id}:`);
       console.log(`\tData: ${message.data}`);
@@ -65,16 +42,19 @@ async function test_subscribe() {
   subsc.on(`message`, messageHandler);
   setTimeout(() => {
     subsc.removeListener('message', messageHandler);
-    console.log("message received");
-  }, 20*1000);
+    // console.log("message received");
+  }, 20*1000); // Wait for 20 seconds
   
 }
 
-
-test_publish().then(function() {
-  console.log("Published....");
+// Handling command line arguments
+if (process.argv[2] == "publish") {
+  test_publish().then(function() {
+    console.log("Published.");
+    test_subscribe();
+    process.exit();
+  });
+}
+else if (process.argv[2] == "subscribe") {
   test_subscribe();
-  process.exit();
-});
-
-// test_subscribe();
+}

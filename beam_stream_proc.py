@@ -1,4 +1,4 @@
-# https://github.com/apache/beam/blob/master/sdks/python/apache_beam/examples/streaming_wordcount.py
+# Credits - https://github.com/apache/beam/blob/master/sdks/python/apache_beam/examples/streaming_wordcount.py
 
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
